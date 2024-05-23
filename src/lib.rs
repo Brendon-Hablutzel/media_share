@@ -5,6 +5,7 @@ use axum::{
 use chrono::{self, DateTime, Utc};
 pub mod record_store;
 use record_store::PgStore;
+pub mod config;
 pub mod errors;
 pub mod file_store;
 pub mod templates;

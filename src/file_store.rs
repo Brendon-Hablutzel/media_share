@@ -1,6 +1,6 @@
 use crate::errors::AppError;
 use axum::body::Bytes;
-use std::{path::PathBuf, str::FromStr};
+use std::path::PathBuf;
 use tokio::io::AsyncWriteExt;
 use tokio_util::io::ReaderStream;
 
@@ -10,10 +10,9 @@ pub struct FilesystemStore {
 }
 
 impl FilesystemStore {
-    pub fn new(files_directory: &str) -> Self {
+    pub fn new(files_directory: &std::path::Path) -> Self {
         Self {
-            files_directory: PathBuf::from_str(files_directory)
-                .expect("path from str conversion should be infallible"),
+            files_directory: files_directory.to_owned(),
         }
     }
 

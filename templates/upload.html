@@ -1,10 +1,102 @@
-<form
-  enctype="multipart/form-data"
-  action="{{ backend_upload_endpoint }}"
-  method="POST"
-  target="_blank"
->
-  Choose a file to upload:
-  <input name="{{ upload_action_name }}" type="file" /><br />
-  <input type="submit" value="Upload File" />
-</form>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Upload</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        color: #333;
+      }
+
+      .file-upload {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      .inputfile {
+        display: none;
+      }
+
+      label {
+        font-size: 18px;
+        color: #fff;
+        background-color: #007bff;
+        display: inline-block;
+        padding: 12px 24px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      label:hover {
+        background-color: #0056b3;
+      }
+
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <form
+        action="{{ backend_upload_endpoint }}"
+        method="post"
+        enctype="multipart/form-data"
+      >
+        <h2>Upload Your File</h2>
+        <div class="file-upload">
+          <input
+            type="file"
+            name="{{ upload_action_name }}"
+            id="file"
+            class="inputfile"
+          />
+          <label for="file" id="file-label">Choose a file...</label>
+        </div>
+        <button type="submit">Upload</button>
+      </form>
+    </div>
+
+    <script>
+      document.getElementById("file").addEventListener("change", function () {
+        var fileName = this.files[0].name;
+        document.getElementById("file-label").textContent = fileName;
+      });
+    </script>
+  </body>
+</html>

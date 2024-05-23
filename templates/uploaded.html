@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Successful</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        color: #333;
+      }
+
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Upload Successful!</h2>
+      <p>
+        <strong>File Label:</strong>
+        <span id="file-name">{{ uploaded_file_label }}</span>
+        <span>
+          (<a href="/get/{{ uploaded_file_label }}" target="_blank">view</a>)
+        </span>
+      </p>
+      <p>
+        <strong>Expiry Time:</strong>
+        <span id="upload-time">{{ expiry_time }}</span>
+      </p>
+      <a href="/upload"> <button>Upload Another File</button></a>
+    </div>
+  </body>
+</html>
