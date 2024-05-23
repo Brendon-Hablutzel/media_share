@@ -1,5 +1,8 @@
+use std::fmt::Display;
+
 use axum::{extract::multipart::MultipartError, http::StatusCode, response::IntoResponse};
 
+#[derive(Debug)]
 pub enum AppError {
     MultipartParseError(MultipartError),
     DatabaseError(sqlx::Error),
@@ -25,24 +28,30 @@ impl From<std::io::Error> for AppError {
     }
 }
 
-impl IntoResponse for AppError {
-    fn into_response(self) -> axum::response::Response {
-        let response = match self {
-            Self::MultipartParseError(inner) => (
-                StatusCode::BAD_REQUEST,
-                format!("bad multipart request: {inner}"),
-            ),
-            Self::DatabaseError(inner) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("database error: {inner}"),
-            ),
-            Self::IOError(inner) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("io error: {inner}"),
-            ),
-            Self::NotFound(details) => (StatusCode::NOT_FOUND, format!("not found: {details}")),
-        };
-
-        response.into_response()
+impl Display for AppError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::DatabaseError(inner) => write!(f, "database error: {inner}"),
+            Self::MultipartParseError(inner) => write!(f, "bad multipart request: {inner}"),
+            Self::IOError(inner) => write!(f, "IO error: {inner}"),
+            Self::NotFound(details) => write!(f, "not found: {details}"),
+        }
     }
 }
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> axum::response::Response {
+        let status_code = match self {
+            Self::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::MultipartParseError(_) => StatusCode::BAD_REQUEST,
+            Self::IOError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::NotFound(_) => StatusCode::NOT_FOUND,
+        };
+
+        let text = self.to_string();
+
+        (status_code, text).into_response()
+    }
+}
+
+impl std::error::Error for AppError {}

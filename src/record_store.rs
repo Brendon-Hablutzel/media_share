@@ -1,6 +1,5 @@
 use crate::Media;
 use sqlx;
-use sqlx::Row;
 
 #[derive(Clone)]
 pub struct PgStore {
@@ -15,47 +14,51 @@ impl PgStore {
     }
 
     pub async fn insert(&self, media: Media) -> Result<(), sqlx::Error> {
-        let query = "INSERT INTO media (label, file_location, content_type, expiry) VALUES ($1, $2, $3, $4)";
-
-        sqlx::query(query)
-            .bind(&media.label)
-            .bind(&media.file_location)
-            .bind(&media.content_type)
-            .bind(&media.expiry)
-            .execute(&self.connection_pool)
-            .await?;
+        sqlx::query!(
+            "INSERT INTO media (label, file_location, content_type, expiry) VALUES ($1, $2, $3, $4)",
+            &media.label,
+            &media.file_location,
+            &media.content_type,
+            &media.expiry
+        )
+        .execute(&self.connection_pool)
+        .await?;
 
         Ok(())
     }
 
     pub async fn get_one(&self, label: &str) -> Result<Option<Media>, sqlx::Error> {
-        let query = "SELECT * FROM media WHERE label = $1";
-
-        let result = sqlx::query(query)
-            .bind(label)
+        let result = sqlx::query!("SELECT * FROM media WHERE label = $1", label)
             .fetch_optional(&self.connection_pool)
             .await?;
 
-        let media = result.map(|row| Media {
-            label: row.get("label"),
-            file_location: row.get("file_location"),
-            content_type: row.get("content_type"),
-            expiry: row.get("expiry"),
+        let media = result.map(|record| Media {
+            label: record.label,
+            file_location: record.file_location,
+            content_type: record.content_type,
+            expiry: record.expiry,
         });
 
         Ok(media)
     }
 
-    pub async fn delete_expired(&self) -> Result<(), sqlx::Error> {
+    pub async fn delete_expired(&self) -> Result<impl Iterator<Item = Media>, sqlx::Error> {
         let current_time = chrono::offset::Utc::now();
 
-        let query = "DELETE FROM media WHERE expiry <= $1";
+        let result = sqlx::query!(
+            "DELETE FROM media WHERE expiry <= $1 RETURNING *",
+            current_time
+        )
+        .fetch_all(&self.connection_pool)
+        .await?;
 
-        sqlx::query(query)
-            .bind(current_time)
-            .execute(&self.connection_pool)
-            .await?;
+        let media = result.into_iter().map(|record| Media {
+            label: record.label,
+            file_location: record.file_location,
+            content_type: record.content_type,
+            expiry: record.expiry,
+        });
 
-        Ok(())
+        Ok(media)
     }
 }

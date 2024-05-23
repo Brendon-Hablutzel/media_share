@@ -1,6 +1,5 @@
-use std::path::{Path, PathBuf};
-
 use dotenv::dotenv;
+use std::path::{Path, PathBuf};
 
 pub struct Config {
     database_url: String,

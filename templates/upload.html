@@ -69,6 +69,10 @@
       button:hover {
         background-color: #0056b3;
       }
+
+      .hidden {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -78,7 +82,7 @@
         method="post"
         enctype="multipart/form-data"
       >
-        <h2>Upload Your File</h2>
+        <h2>Upload a File</h2>
         <div class="file-upload">
           <input
             type="file"
@@ -88,14 +92,23 @@
           />
           <label for="file" id="file-label">Choose a file...</label>
         </div>
-        <button type="submit">Upload</button>
+        <button type="submit" id="upload-button" class="hidden">Upload</button>
       </form>
     </div>
 
     <script>
+      var uploadButton = document.getElementById("upload-button");
+      var fileLabel = document.getElementById("file-label");
+
       document.getElementById("file").addEventListener("change", function () {
-        var fileName = this.files[0].name;
-        document.getElementById("file-label").textContent = fileName;
+        if (this.files.length > 0) {
+          var fileName = this.files[0].name;
+          fileLabel.textContent = fileName;
+          uploadButton.className = "";
+        } else {
+          fileLabel.textContent = "Choose a file...";
+          uploadButton.className = "hidden";
+        }
       });
     </script>
   </body>

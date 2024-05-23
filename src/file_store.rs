@@ -1,4 +1,3 @@
-use crate::errors::AppError;
 use axum::body::Bytes;
 use std::path::PathBuf;
 use tokio::io::AsyncWriteExt;
@@ -21,7 +20,7 @@ impl FilesystemStore {
         data: Bytes,
         label: &str,
         file_extension: Option<&str>,
-    ) -> Result<String, AppError> {
+    ) -> Result<String, std::io::Error> {
         // takes a file and a label, stores the file using the label,
         // and returns the location of the file
         let file_extension = match file_extension {
@@ -47,11 +46,15 @@ impl FilesystemStore {
     pub async fn get(
         &self,
         file_location: &str,
-    ) -> Result<ReaderStream<tokio::fs::File>, AppError> {
-        let file = tokio::fs::File::open(file_location)
-            .await
-            .map_err(|_| AppError::NotFound(format!("file not found: {file_location}")))?;
+    ) -> Result<ReaderStream<tokio::fs::File>, std::io::Error> {
+        let file = tokio::fs::File::open(file_location).await?;
 
         Ok(ReaderStream::new(file))
+    }
+
+    pub async fn remove(&self, file_location: &str) -> Result<(), std::io::Error> {
+        let result = tokio::fs::remove_file(file_location).await?;
+
+        Ok(result)
     }
 }
