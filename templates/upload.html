@@ -1,0 +1,10 @@
+<form
+  enctype="multipart/form-data"
+  action="{{ backend_upload_endpoint }}"
+  method="POST"
+  target="_blank"
+>
+  Choose a file to upload:
+  <input name="{{ upload_action_name }}" type="file" /><br />
+  <input type="submit" value="Upload File" />
+</form>
