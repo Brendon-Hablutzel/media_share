@@ -14,6 +14,8 @@ You will also need to provide a file directory path, which is where the files wi
 
 Then, set the amount of hours you would like a file to last before expiration as `EXPIRY_HOURS=` in `.env`. To actually implement this functionaltiy, you will need to set up a scheduled (likely a cron) job that runs the `src/bin/delete_expired.rs` script. This script will delete any expired records and remove the corresponding files.
 
+In `.env`, set `PORT=` to the port you would like to run the web server on.
+
 Finally, to start the service, simply run `main.rs` and the web server will begin listening for connections. Visit `/upload` to upload a file, and use `/get/:label` to get a file by its label--a file label is a randomly generated pair of words used to unique identify a file.
 
 ## Technologies Used
