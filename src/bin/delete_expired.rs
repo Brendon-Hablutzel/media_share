@@ -17,7 +17,7 @@ async fn main() -> Result<(), AppError> {
     let deleted = record_store.delete_expired().await?;
 
     for file in deleted {
-        file_store.remove(&file.file_location).await?;
+        file_store.remove(&file.label).await?;
     }
 
     Ok(())

@@ -10,10 +10,9 @@ use media_share::{
     config::Config,
     errors::AppError,
     file_store::FilesystemStore,
-    generate_unique_label, get_multipart_file_by_name,
+    get_multipart_file_by_name, insert_with_unique_label,
     record_store::PgStore,
     templates::{UploadFormTemplate, UploadedResultTemplate},
-    Media,
 };
 
 const FILE_UPLOAD_ACTION_NAME: &'static str = "uploadedfile";
@@ -46,28 +45,12 @@ async fn upload(
         )));
     };
 
-    let label = generate_unique_label(&state.record_store).await?;
-
-    let file_extension = uploaded_file
-        .name
-        .split_once(".")
-        .map(|(_, extension)| extension);
-
-    let file_location = state
-        .file_store
-        .store(uploaded_file.data, &label, file_extension)
-        .await?;
-
     let expiry = chrono::offset::Utc::now() + state.expiry_time;
 
-    let media = Media {
-        file_location,
-        content_type: uploaded_file.content_type,
-        label: label.clone(),
-        expiry,
-    };
+    let label =
+        insert_with_unique_label(&state.record_store, &uploaded_file.content_type, expiry).await?;
 
-    state.record_store.insert(media).await?;
+    state.file_store.store(uploaded_file.data, &label).await?;
 
     let template = UploadedResultTemplate {
         uploaded_file_label: &label,
@@ -85,7 +68,7 @@ async fn get_file(
         return Err(AppError::NotFound(format!("file not found: {label}")));
     };
 
-    let file_stream = state.file_store.get(&media.file_location).await?;
+    let file_stream = state.file_store.get(&media.label).await?;
     let body = Body::from_stream(file_stream);
 
     let mut headers = HeaderMap::new();
@@ -98,7 +81,7 @@ async fn get_file(
     Ok((headers, body))
 }
 
-async fn create_app(config: Config) -> Router {
+async fn create_app(config: &Config) -> Router {
     let record_store = PgStore::new(config.get_database_url())
         .await
         .expect("should be able to initialize the data store");
@@ -122,8 +105,10 @@ async fn create_app(config: Config) -> Router {
 async fn main() {
     let config = Config::new();
 
-    let app = create_app(config).await;
+    let app = create_app(&config).await;
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8000").await.unwrap();
+    let host_addr = format!("0.0.0.0:{}", &config.get_port());
+
+    let listener = tokio::net::TcpListener::bind(host_addr).await.unwrap();
     axum::serve(listener, app).await.unwrap()
 }

@@ -15,46 +15,34 @@ impl FilesystemStore {
         }
     }
 
-    pub async fn store(
-        &self,
-        data: Bytes,
-        label: &str,
-        file_extension: Option<&str>,
-    ) -> Result<String, std::io::Error> {
-        // takes a file and a label, stores the file using the label,
-        // and returns the location of the file
-        let file_extension = match file_extension {
-            Some(extension) => format!(".{extension}"),
-            None => String::new(),
-        };
-
-        let file_name = format!("{label}{file_extension}");
-
-        let abs_file_path = self
-            .files_directory
-            .join(&file_name)
+    fn get_file_abspath(&self, label: &str) -> String {
+        self.files_directory
+            .join(&label)
             .to_str()
             .expect("file path should be valid unicode")
-            .to_owned();
-
-        let mut file = tokio::fs::File::create(&abs_file_path).await?;
-        file.write(&data).await?;
-
-        Ok(abs_file_path)
+            .to_owned()
     }
 
-    pub async fn get(
-        &self,
-        file_location: &str,
-    ) -> Result<ReaderStream<tokio::fs::File>, std::io::Error> {
-        let file = tokio::fs::File::open(file_location).await?;
+    pub async fn store(&self, data: Bytes, label: &str) -> Result<(), std::io::Error> {
+        let file_location = self.get_file_abspath(label);
+
+        let mut file = tokio::fs::File::create(&file_location).await?;
+        file.write(&data).await?;
+
+        Ok(())
+    }
+
+    pub async fn get(&self, label: &str) -> Result<ReaderStream<tokio::fs::File>, std::io::Error> {
+        let file_location = self.get_file_abspath(label);
+
+        let file = tokio::fs::File::open(&file_location).await?;
 
         Ok(ReaderStream::new(file))
     }
 
-    pub async fn remove(&self, file_location: &str) -> Result<(), std::io::Error> {
-        let result = tokio::fs::remove_file(file_location).await?;
+    pub async fn remove(&self, label: &str) -> Result<(), std::io::Error> {
+        let file_location = self.get_file_abspath(label);
 
-        Ok(result)
+        tokio::fs::remove_file(&file_location).await
     }
 }

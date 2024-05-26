@@ -5,6 +5,7 @@ pub struct Config {
     database_url: String,
     files_dir: PathBuf,
     expiry_time: chrono::Duration,
+    port: String,
 }
 
 impl Config {
@@ -24,10 +25,13 @@ impl Config {
             .expect("EXPIRY_HOURS should be a valid non-negative integer");
         let expiry_time = chrono::Duration::hours(expiry_hours.into());
 
+        let port = std::env::var("PORT").expect("environment variable PORT should be set");
+
         Self {
             database_url,
             files_dir,
             expiry_time,
+            port,
         }
     }
 
@@ -41,5 +45,9 @@ impl Config {
 
     pub fn get_expiry_time(&self) -> chrono::Duration {
         self.expiry_time
+    }
+
+    pub fn get_port(&self) -> &str {
+        &self.port
     }
 }

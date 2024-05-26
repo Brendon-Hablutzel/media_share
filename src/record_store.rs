@@ -1,4 +1,4 @@
-use crate::Media;
+use crate::MediaRecord;
 use sqlx;
 
 #[derive(Clone)]
@@ -13,11 +13,10 @@ impl PgStore {
         Ok(Self { connection_pool })
     }
 
-    pub async fn insert(&self, media: Media) -> Result<(), sqlx::Error> {
+    pub async fn insert(&self, media: MediaRecord) -> Result<(), sqlx::Error> {
         sqlx::query!(
-            "INSERT INTO media (label, file_location, content_type, expiry) VALUES ($1, $2, $3, $4)",
+            "INSERT INTO media (label, content_type, expiry) VALUES ($1, $2, $3)",
             &media.label,
-            &media.file_location,
             &media.content_type,
             &media.expiry
         )
@@ -27,38 +26,23 @@ impl PgStore {
         Ok(())
     }
 
-    pub async fn get_one(&self, label: &str) -> Result<Option<Media>, sqlx::Error> {
-        let result = sqlx::query!("SELECT * FROM media WHERE label = $1", label)
+    pub async fn get_one(&self, label: &str) -> Result<Option<MediaRecord>, sqlx::Error> {
+        sqlx::query_as!(MediaRecord, "SELECT * FROM media WHERE label = $1", label)
             .fetch_optional(&self.connection_pool)
-            .await?;
-
-        let media = result.map(|record| Media {
-            label: record.label,
-            file_location: record.file_location,
-            content_type: record.content_type,
-            expiry: record.expiry,
-        });
-
-        Ok(media)
+            .await
     }
 
-    pub async fn delete_expired(&self) -> Result<impl Iterator<Item = Media>, sqlx::Error> {
+    pub async fn delete_expired(&self) -> Result<impl Iterator<Item = MediaRecord>, sqlx::Error> {
         let current_time = chrono::offset::Utc::now();
 
-        let result = sqlx::query!(
+        let records = sqlx::query_as!(
+            MediaRecord,
             "DELETE FROM media WHERE expiry <= $1 RETURNING *",
             current_time
         )
         .fetch_all(&self.connection_pool)
         .await?;
 
-        let media = result.into_iter().map(|record| Media {
-            label: record.label,
-            file_location: record.file_location,
-            content_type: record.content_type,
-            expiry: record.expiry,
-        });
-
-        Ok(media)
+        Ok(records.into_iter())
     }
 }

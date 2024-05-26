@@ -11,9 +11,8 @@ pub mod file_store;
 pub mod templates;
 
 // represents a media file record in the database
-pub struct Media {
+pub struct MediaRecord {
     pub label: String,
-    pub file_location: String,
     pub content_type: String,
     pub expiry: DateTime<Utc>,
 }
@@ -62,17 +61,16 @@ pub async fn get_multipart_file_by_name(
     Ok(data)
 }
 
-pub async fn generate_unique_label(record_store: &PgStore) -> Result<String, sqlx::Error> {
-    // try to generate a label using two random english words. if the label
-    // exists already, append a counter to the label and keep incrementing that
-    // counter until the label is unique
+pub async fn insert_with_unique_label(
+    record_store: &PgStore,
+    content_type: &str,
+    expiry: chrono::DateTime<Utc>,
+) -> Result<String, sqlx::Error> {
     let word_1 = random_word::gen(random_word::Lang::En);
     let word_2 = random_word::gen(random_word::Lang::En);
     let mut counter: u32 = 0;
 
     loop {
-        // only use the counter if it is nonzero (e.g. at least one media
-        // exists with same generated label)
         let counter_string = match counter {
             0 => String::new(),
             nonzero => format!("-{nonzero}"),
@@ -80,10 +78,21 @@ pub async fn generate_unique_label(record_store: &PgStore) -> Result<String, sql
 
         let label = format!("{word_1}-{word_2}{counter_string}");
 
-        // if no media with the above label exists already, then it is unique
-        // and can be returned
-        if let None = record_store.get_one(&label).await? {
-            return Ok(label);
+        let media_record = MediaRecord {
+            label: label.clone(),
+            content_type: content_type.to_owned(),
+            expiry,
+        };
+
+        match record_store.insert(media_record).await {
+            Ok(_) => return Ok(label),
+            Err(sqlx_err) => {
+                if let sqlx::Error::Database(db_err) = &sqlx_err {
+                    if !db_err.is_unique_violation() {
+                        return Err(sqlx_err);
+                    }
+                }
+            }
         }
 
         counter += 1;
