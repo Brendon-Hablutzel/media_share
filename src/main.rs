@@ -12,7 +12,7 @@ use media_share::{
     file_store::FilesystemStore,
     get_multipart_file_by_name, insert_with_unique_label,
     record_store::PgStore,
-    templates::{UploadFormTemplate, UploadedResultTemplate},
+    templates::{GetFormTemplate, UploadFormTemplate, UploadedResultTemplate},
 };
 
 const FILE_UPLOAD_ACTION_NAME: &'static str = "uploadedfile";
@@ -60,6 +60,12 @@ async fn upload(
     Ok(Html(template.to_string()))
 }
 
+async fn get_file_form() -> Html<String> {
+    let template = GetFormTemplate {};
+
+    Html(template.to_string())
+}
+
 async fn get_file(
     State(state): State<AppState>,
     axum::extract::Path(label): axum::extract::Path<String>,
@@ -98,6 +104,7 @@ async fn create_app(config: &Config) -> Router {
         .route("/upload", post(upload))
         .route("/upload", get(upload_form))
         .route("/get/:label", get(get_file))
+        .route("/get", get(get_file_form))
         .with_state(state)
 }
 

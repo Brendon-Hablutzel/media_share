@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Navigate to File</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+      }
+
+      h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        color: #333;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 12px 24px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+        box-sizing: border-box;
+      }
+
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Navigate to a File</h2>
+      <input
+        type="text"
+        id="filename"
+        placeholder="Enter file name..."
+        required
+      />
+      <a href="/get" target="_blank" id="file-link">
+        <button id="submit-button">Go</button>
+      </a>
+    </div>
+    <script>
+      var filenameElement = document.getElementById("filename");
+      var linkElement = document.getElementById("file-link");
+      filenameElement.addEventListener("input", function () {
+        var filename =
+          (filenameElement.value ? "/" : "") +
+          encodeURIComponent(filenameElement.value);
+        linkElement.setAttribute("href", "/get" + filename);
+      });
+    </script>
+  </body>
+</html>

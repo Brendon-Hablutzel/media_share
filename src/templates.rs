@@ -13,3 +13,7 @@ pub struct UploadedResultTemplate<'a> {
     pub uploaded_file_label: &'a str,
     pub expiry_time: &'a str,
 }
+
+#[derive(Template)]
+#[template(path = "get.html")]
+pub struct GetFormTemplate {}
