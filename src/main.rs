@@ -1,6 +1,6 @@
 use axum::{
     body::Body,
-    extract::{Multipart, State},
+    extract::{DefaultBodyLimit, Multipart, State},
     http::{header, HeaderMap, HeaderValue},
     response::{Html, IntoResponse},
     routing::{get, post},
@@ -106,6 +106,7 @@ async fn create_app(config: &Config) -> Router {
         .route("/get/:label", get(get_file))
         .route("/get", get(get_file_form))
         .with_state(state)
+        .layer(DefaultBodyLimit::max(1073741824)) // 1 GB
 }
 
 #[tokio::main]
