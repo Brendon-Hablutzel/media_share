@@ -1,5 +1,3 @@
-version: '4'
-
 ### NOTE: use a .env file to set POSTGRES_USER and POSTGRES_PASSWORD ###
 
 services:
@@ -20,9 +18,9 @@ services:
   db:
     image: postgres:13
     environment:
-      POSTGRES_USER: $POSTGRES_USER
-      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
-      POSTGRES_DB: media_db
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB=media_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
