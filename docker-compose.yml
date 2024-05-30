@@ -1,0 +1,30 @@
+version: '4'
+
+### NOTE: use a .env file to set POSTGRES_USER and POSTGRES_PASSWORD ###
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/media_db
+      - FILES_DIR=/usr/src/app/data
+      - PORT=8080
+      - EXPIRY_HOURS=0
+    volumes:
+      - ./data:/usr/src/app/data
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: media_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

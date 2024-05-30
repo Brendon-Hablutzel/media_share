@@ -5,12 +5,14 @@ use axum::{
 use chrono::{self, DateTime, Utc};
 pub mod record_store;
 use record_store::PgStore;
+use sqlx::prelude::FromRow;
 pub mod config;
 pub mod errors;
 pub mod file_store;
 pub mod templates;
 
 // represents a media file record in the database
+#[derive(FromRow)]
 pub struct MediaRecord {
     pub label: String,
     pub content_type: String,

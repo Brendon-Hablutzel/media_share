@@ -4,19 +4,11 @@ A service for sharing files locally through a web-based interface. Upload a file
 
 ## Deployment
 
-This service is intended to be self-hosted locally and should not be used to store any sensitive data, as it does not (yet) contain any functionality for auth.
+This service can be deployed using docker compose. Simply build the image in the root directory of the project using `docker compose build`, then run using `docker compose up`, and you should be able to access the service at the default port, which is 8080.
 
-Before running this service, you must first set up postgres and ensure it is running correctly. Then you will need to create a user with appropriate permissions, and put all the corresponding database uri in the `.env` file as `DATABASE_URL=...`. See `.env.template` for an example.
+You may set the amount of hours you would like a file to last before expiration as `EXPIRY_HOURS=` in `.env`. To actually implement this functionaltiy, you will need to set up a scheduled (likely a cron) job that runs the `src/bin/delete_expired.rs` script. This script will delete any expired records and remove the corresponding files.
 
-To create the database and appropriate table, install the [sqlx cli](https://crates.io/crates/sqlx-cli/0.5.2), then run `sqlx database create` to create the database, and `sqlx migrate run` to run the migrations, which should create the table. Note that the sqlx queries in the code will not compile until the database is set up, since they check for query validity at compile time.
-
-You will also need to provide a file directory path, which is where the files will be stored. Assign this value to `FILES_DIR=` in `.env`.
-
-Then, set the amount of hours you would like a file to last before expiration as `EXPIRY_HOURS=` in `.env`. To actually implement this functionaltiy, you will need to set up a scheduled (likely a cron) job that runs the `src/bin/delete_expired.rs` script. This script will delete any expired records and remove the corresponding files.
-
-In `.env`, set `PORT=` to the port you would like to run the web server on.
-
-Finally, to start the service, simply run `main.rs` and the web server will begin listening for connections. Visit `/upload` to upload a file, and use `/get/:label` to get a file by its label--a file label is a randomly generated pair of words used to unique identify a file.
+Visit `/upload` to upload a file, and use `/get/:label` to get a file by its label--a file label is a randomly generated pair of words used to unique identify a file.
 
 ## Technologies Used
 
